@@ -1,0 +1,694 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.src.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<link href="{% static 'realize.css' %}" rel="stylesheet">
+<div class="block_container">
+    <div class="minor_nav">
+        <button class="select_nav" onclick="change_display('analysis')"><h5>分析總覽</h5></button>
+        <button class="select_nav" onclick="change_display('questionarie')"><h5 >問卷結果</h5></button>
+        <button class="select_nav" onclick="change_display('group')"><h5 >群體分析</h5></button>
+    </div>
+    <div style="display: flex; margin-top: 20px">
+        <img class="profile_pic" src="static/asset/test_profile.JPG">
+        <div style="width: 80%;">
+            <h1 class="name">{{request.user}}</h1>
+            <div style="display: flex;">
+                <div style="width: 30%;">
+                    <h1 class="name" style="font-size: 15px;">貼文數量</h1>
+                    <h1 class="name" style="font-size: 15px;">{{uid.total_post}}</h1>
+                </div>
+                <div>
+                    <h1 class="name" style="font-size: 15px;">總共被按讚次數</h1>
+                    <h1 class="name" style="font-size: 15px;">{{uid.user_total_like}}</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="panel_container" style="align-items: center;">
+    </div>
+</div>
+<script>
+$( window ).load(create_chart());
+function change_display(category){
+  var e = $("#panel_container").empty();
+  if(category == "analysis"){
+    var contain_list = ['貼文意境 Style','container','貼文人格分析 Personality','container_1']
+    for(var l = 0; l < contain_list.length; l++){
+      var title = contain_list[l];
+      l = l + 1
+      var container_name = contain_list[l];
+      e.append("<div style='margin-top: 50px;'><div class='sub_title'><h5>" + title + "</h5></div></div><div class='display_container'><div id='" + container_name + "'></div></div>")
+    }
+    create_chart_analysis()
+  }
+  else if(category == "questionarie"){
+    var contain_list = ['Big Five問卷結果','container_2']
+    for(var l = 0; l < contain_list.length; l++){
+      var title = contain_list[l];
+      l = l + 1
+      var container_name = contain_list[l];
+      e.append("<div style='margin-top: 50px;'><div class='sub_title'><h5>" + title + "</h5></div></div><div class='display_container'><div id='" + container_name + "'></div></div>")
+    }
+    create_chart_questionarie()
+  }
+  else if(category == "group"){
+    var contain_list = ['官方帳號風格比例','container_6','追蹤者讚數分析','container_8','追蹤者風格分析','container_5', '','container_7','追蹤者興趣分析','container_3','追蹤者性格分析','container_4',]
+    for(var l = 0; l < contain_list.length; l++){
+      var title = contain_list[l];
+      l = l + 1
+      var container_name = contain_list[l];
+      e.append("<div style='margin-top: 50px;'><div class='sub_title'><h5>" + title + "</h5></div></div><div class='display_container'><div id='" + container_name + "'></div></div>")
+    }
+    create_chart_group()
+  }
+};
+
+function create_chart_group(){
+  var pieColors = (function () {
+    var colors = [],
+        base = Highcharts.getOptions().colors[7],
+        i;
+
+    for (i = 0; i < 10; i += 1) {
+        // Start out with a darkened base color (negative brighten), and end
+        // up with a much brighter color
+        colors.push(Highcharts.Color(base).brighten((i - 3) / 7).get());
+    }
+    return colors;
+}());
+Highcharts.chart('container_5', {
+    chart: {
+        type: 'column'
+    },
+    title: {
+        text: '追蹤者性格分析'
+    },
+    xAxis: {
+      categories: ['Openness', 'Conscientiousness','Extraversion','Agreeableness','Neuroticism','lonely', ''],
+      crosshair: true
+    },
+    yAxis: {
+        min: 0,
+        title: {
+            text: 'people (number)'
+        }
+    },
+    tooltip: {
+        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+            '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+        footerFormat: '</table>',
+        shared: true,
+        useHTML: true
+    },
+    plotOptions: {
+        column: {
+            pointPadding: 0.2,
+            borderWidth: 0
+        }
+    },
+    series: [{
+        name: 'enphants',
+        data: [Number("{{group.big5_openness}}"), Number("{{group.big5_conscientiousness }}"), Number("{{group.big5_extraversion }}"), Number("{{group.big5_agreeableness }}"), Number("{{group.big5_neuroticism }}")]
+
+    }, {
+        name: 'average',
+        data: [Number("{{average.big5_openness}}"), Number("{{average.big5_conscientiousness }}"), Number("{{average.big5_extraversion }}"), Number("{{average.big5_agreeableness }}"), Number("{{average.big5_neuroticism }}")]
+
+    },{
+        name: 'harley',
+        data: [Number("{{harley.big5_openness}}"), Number("{{harley.big5_conscientiousness }}"), Number("{{harley.big5_extraversion }}"), Number("{{harley.big5_agreeableness }}"), Number("{{harley.big5_neuroticism }}")]
+
+    },{
+        name: 'mac',
+        data: [Number("{{baby.big5_openness}}"), Number("{{baby.big5_conscientiousness }}"), Number("{{baby.big5_extraversion }}"), Number("{{baby.big5_agreeableness }}"), Number("{{baby.big5_neuroticism }}")]
+
+    }]
+});
+Highcharts.chart('container_7', {
+    chart: {
+        type: 'column'
+    },
+    title: {
+        text: '追蹤者風格分析'
+    },
+    xAxis: {
+      categories: ['hiking', 'infant', 'studying', 'celebrate', 'fireworks', 'nightclub', 'sports', 'depressed', 'lonely','selfie', 'building', 'delicious', 'books'],
+      crosshair: true
+    },
+    yAxis: {
+        min: 0,
+        title: {
+            text: 'people (number)'
+        }
+    },
+    tooltip: {
+        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+            '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
+        footerFormat: '</table>',
+        shared: true,
+        useHTML: true
+    },
+    plotOptions: {
+        column: {
+            pointPadding: 0.2,
+            borderWidth: 0
+        }
+    },
+    series: [{
+        name: 'enphants',
+        data: [Number("{{group.style_hiking}}"), Number("{{group.style_infant}}"),Number("{{group.style_studying}}"),Number("{{group.style_celebrate}}"),Number("{{group.style_firework}}"),Number("{{group.style_nightclub }}"),Number("{{group.style_sports}}"),Number("{{group.style_depressed}}"),Number("{{group.style_lonely}}"),Number("{{group.style_selfie}}"),Number("{{group.style_building}}"),Number("{{group.style_delicious}}"),Number("{{group.style_books}}")]
+
+    }, {
+        name: 'harley',
+        data: [Number("{{harley.style_hiking}}"), Number("{{harley.style_infant}}"),Number("{{harley.style_studying}}"),Number("{{harley.style_celebrate}}"),Number("{{harley.style_firework}}"),Number("{{harley.style_nightclub }}"),Number("{{harley.style_sports}}"),Number("{{harley.style_depressed}}"),Number("{{harley.style_lonely}}"),Number("{{harley.style_selfie}}"),Number("{{harley.style_building}}"),Number("{{harley.style_delicious}}"),Number("{{harley.style_books}}")]
+
+    },{
+        name: 'M.A.C',
+        data: [Number("{{baby.style_hiking}}"), Number("{{baby.style_infant}}"),Number("{{baby.style_studying}}"),Number("{{baby.style_celebrate}}"),Number("{{baby.style_firework}}"),Number("{{baby.style_nightclub }}"),Number("{{baby.style_sports}}"),Number("{{baby.style_depressed}}"),Number("{{baby.style_lonely}}"),Number("{{baby.style_selfie}}"),Number("{{baby.style_building}}"),Number("{{baby.style_delicious}}"),Number("{{baby.style_books}}")]
+
+    },{
+        name: 'average',
+        data: [Number("{{average.style_hiking}}"), Number("{{average.style_infant}}"),Number("{{average.style_studying}}"),Number("{{average.style_celebrate}}"),Number("{{average.style_firework}}"),Number("{{average.style_nightclub }}"),Number("{{average.style_sports}}"),Number("{{average.style_depressed}}"),Number("{{average.style_lonely}}"),Number("{{average.style_selfie}}"),Number("{{average.style_building}}"),Number("{{average.style_delicious}}"),Number("{{average.style_books}}")]
+
+    }]
+});
+Highcharts.chart('container_6', {
+    chart: {
+      type: 'pie'
+    },
+    title: {
+      text: '官方帳號風格比例',
+    },
+    subtitle: {
+      text:'',
+    },
+    plotOptions: {
+      pie: {
+        colors: pieColors
+      },
+      series: {
+        dataLabels: {
+          enabled: true,
+          format: '{point.name}: {point.y:.1f}%'
+        }
+      }
+    },
+
+    series: [
+      {
+        name: "Browsers",
+        colorByPoint: true,
+        data: [
+          {
+            name: "hiking",
+            y: Number("{{group.official_hiking_percent}}") * 100,
+            drilldown: "hiking"
+          },
+          {
+            name: "infant",
+            y: Number("{{group.official_infant_percent}}") * 100,
+            drilldown: "infant"
+          },
+          {
+            name: "studying",
+            y: Number("{{group.official_studying_percent}}")* 100,
+            drilldown: "studying"
+          },
+          {
+            name: "celebrate",
+            y: Number("{{group.official_celebrate_percent}}")* 100,
+            drilldown: "celebrate"
+          },
+          {
+            name: "firework",
+            y: Number("{{group.official_firework_percent}}")* 100,
+            drilldown: "firework"
+          },
+          {
+            name: "nightclub",
+            y: Number("{{group.official_nightclub_percent}}")* 100,
+            drilldown: "nightclub"
+          },
+          {
+            name: "sports",
+            y: Number("{{group.official_sports_percent}}")* 100,
+            drilldown: "sports"
+          },
+          {
+            name: "depressed",
+            y: Number("{{group.official_depressed_percent}}")* 100,
+            drilldown: "depressed"
+          },
+          {
+            name: "lonely",
+            y: Number("{{group.official_lonely_percent}}")* 100,
+            drilldown: "lonely"
+          },
+          {
+            name: "selfie",
+            y: Number("{{group.official_selfie_percent}}")* 100,
+            drilldown: "selfie"
+          },
+          {
+            name: "building",
+            y: Number("{{group.official_building_percent}}")* 100,
+            drilldown: "building"
+          },
+          {
+            name: "delicious",
+            y: Number("{{group.official_delicious_percent}}")* 100,
+            drilldown: "delicious"
+          },
+          {
+            name: "books",
+            y: Number("{{group.official_books_percent}}")* 100,
+            drilldown: "books"
+          },
+        ]
+      }
+    ],
+  });
+  var pieColors = (function () {
+    var colors = [],
+        base = Highcharts.getOptions().colors[6],
+        i;
+
+    for (i = 0; i < 10; i += 1) {
+        // Start out with a darkened base color (negative brighten), and end
+        // up with a much brighter color
+        colors.push(Highcharts.Color(base).brighten((i - 3) / 7).get());
+    }
+    return colors;
+}());
+  Highcharts.chart('container_8', {
+    chart: {
+      type: 'pie'
+    },
+    title: {
+      text: '追蹤者讚數分析',
+    },
+    subtitle: {
+      text:'',
+    },
+    plotOptions: {
+      pie: {
+        colors: pieColors
+      },
+      series: {
+        dataLabels: {
+          enabled: true,
+          format: '{point.name}: {point.y:.1f}%'
+        }
+      }
+    },
+
+    series: [
+      {
+        name: "Browsers",
+        colorByPoint: true,
+        data: [
+          {
+            name: "hiking",
+            y: Number("{{group.style_hiking}}") * 100,
+            drilldown: "hiking"
+          },
+          {
+            name: "infant",
+            y: Number("{{group.style_infant}}")* 100,
+            drilldown: "infant"
+          },
+          {
+            name: "studying",
+            y: Number("{{group.style_studying}}")* 100,
+            drilldown: "studying"
+          },
+          {
+            name: "celebrate",
+            y: Number("{{group.style_celebrate}}")* 100,
+            drilldown: "celebrate"
+          },
+          {
+            name: "firework",
+            y: Number("{{group.style_firework}}")* 100,
+            drilldown: "firework"
+          },
+          {
+            name: "nightclub",
+            y: Number("{{group.style_nightclub}}")* 100,
+            drilldown: "nightclub"
+          },
+          {
+            name: "sports",
+            y: Number("{{group.style_sports}}")* 100,
+            drilldown: "sports"
+          },
+          {
+            name: "depressed",
+            y: Number("{{group.style_depressed}}")* 100,
+            drilldown: "depressed"
+          },
+          {
+            name: "lonely",
+            y: Number("{{group.style_lonely}}")* 100,
+            drilldown: "lonely"
+          },
+          {
+            name: "selfie",
+            y: Number("{{group.style_selfie}}")* 100,
+            drilldown: "selfie"
+          },
+          {
+            name: "building",
+            y: Number("{{group.style_building}}")* 100,
+            drilldown: "building"
+          },
+          {
+            name: "delicious",
+            y: Number("{{group.style_delicious}}")* 100,
+            drilldown: "delicious"
+          },
+          {
+            name: "books",
+            y: Number("{{group.style_books}}")* 100,
+            drilldown: "books"
+          },
+        ]
+      }
+    ],
+  });
+  Highcharts.chart('container_3', {
+    chart: {
+        type: 'column'
+    },
+    title: {
+        text: ''
+    },
+    xAxis: {
+        categories: ['outdoor','water','sport','music','dance','photo','drama','game','visual']
+    },
+    credits: {
+        enabled: false
+    },
+    series: [{
+        data: [ Number("{{group.hobby_outdoor }}"), Number("{{group.hobby_water }}"), Number("{{group.hobby_sport }}"), Number("{{group.hobby_music }}"), Number("{{group.hobby_dance }}"), Number("{{group.hobby_photo }}"), Number("{{group.hobby_drama }}"), Number("{{group.hobby_game }}"), Number("{{group.hobby_visual }}")]
+    }]
+});
+Highcharts.chart('container_4', {
+    chart: {
+        type: 'column'
+    },
+    title: {
+        text: ''
+    },
+    xAxis: {
+        categories: ['Openness', 'Conscientiousness','Extraversion','Agreeableness','Neuroticism']
+    },
+    credits: {
+        enabled: false
+    },
+    series: [{
+        data: [ Number("{{group.big5_openness}}"), Number("{{group.big5_conscientiousness }}"), Number("{{group.big5_extraversion }}"), Number("{{group.big5_agreeableness }}"), Number("{{group.big5_neuroticism }}")]
+    }]
+});
+};
+function create_chart_analysis(){
+  Highcharts.chart('container', {
+  chart: {
+      polar: true,
+      type: 'line'
+  },
+
+  title: {
+      text: 'Instagram 五大人格傾向分析'
+  },
+
+  pane: {
+      size: '80%'
+  },
+
+  xAxis: {
+      categories: ['Openness', 'Conscientiousness','Extraversion','Agreeableness','Neuroticism'],
+      tickmarkPlacement: 'on',
+      lineWidth: 0
+  },
+
+  yAxis: {
+      gridLineInterpolation: 'polygon',
+      lineWidth: 0,
+      min: 0
+  },
+
+  tooltip: {
+      shared: true,
+      pointFormat: '<span style="color:{series.color}">{series.name}: <b>${point.y:.1f}</b><br/>'
+  },
+
+  legend: {
+      align: 'right',
+      verticalAlign: 'middle'
+  },
+
+  series: [{
+      name: 'big 5 prdiction',
+      data: [ parseFloat("{{uid.big5_openness}}"), parseFloat("{{uid.big5_conscientiousness}}"), parseFloat("{{uid.big5_extraversion}}"), parseFloat("{{uid.big5_agreeableness}}"), parseFloat("{{uid.big5_neuroticism}}")],
+      pointPlacement: 'on'
+  }],
+
+  responsive: {
+      rules: [{
+          condition: {
+              maxWidth: 1
+          },
+          chartOptions: {
+              legend: {
+                  align: 'center',
+                  verticalAlign: 'bottom'
+              },
+              pane: {
+                  size: '70%'
+              }
+          }
+      }]
+    }
+  });
+  var pieColors = (function () {
+    var colors = [],
+        base = Highcharts.getOptions().colors[3],
+        i;
+
+    for (i = 0; i < 10; i += 1) {
+        // Start out with a darkened base color (negative brighten), and end
+        // up with a much brighter color
+        colors.push(Highcharts.Color(base).brighten((i - 3) / 7).get());
+    }
+    return colors;
+}());
+      // Create the chart
+  Highcharts.chart('container_1', {
+    chart: {
+      type: 'pie'
+    },
+    title: {
+      text: 'Instagram 圖片風格分析',
+    },
+    subtitle: {
+      text:'',
+    },
+    plotOptions: {
+      pie:{
+        colors: pieColors
+      },
+      series: {
+        dataLabels: {
+          enabled: true,
+          format: '{point.name}: {point.y:.1f}%'
+        }
+      }
+    },
+    series: [
+      {
+        name: "Browsers",
+        colorByPoint: true,
+        data: [
+          {
+            name: "hiking",
+            y: Number("{{uid.style_hiking}}")* 100,
+            drilldown: "hiking"
+          },
+          {
+            name: "infant",
+            y: Number("{{uid.style_infant}}")* 100,
+            drilldown: "infant"
+          },
+          {
+            name: "studying",
+            y: Number("{{uid.style_studying}}")* 100,
+            drilldown: "studying"
+          },
+          {
+            name: "celebrate",
+            y: Number("{{uid.style_celebrate}}")* 100,
+            drilldown: "celebrate"
+          },
+          {
+            name: "firework",
+            y: Number("{{uid.style_firework}}")* 100,
+            drilldown: "firework"
+          },
+          {
+            name: "nightclub",
+            y: Number("{{uid.style_nightclub}}")* 100,
+            drilldown: "nightclub"
+          },
+          {
+            name: "sports",
+            y: Number("{{uid.style_sports}}")* 100,
+            drilldown: "sports"
+          },
+          {
+            name: "depressed",
+            y: Number("{{uid.style_depressed}}")* 100,
+            drilldown: "depressed"
+          },
+          {
+            name: "lonely",
+            y: Number("{{uid.style_lonely}}")* 100,
+            drilldown: "lonely"
+          },
+          {
+            name: "selfie",
+            y: Number("{{uid.style_selfie}}")* 100,
+            drilldown: "selfie"
+          },
+          {
+            name: "building",
+            y: Number("{{uid.style_building}}")* 100,
+            drilldown: "building"
+          },
+          {
+            name: "delicious",
+            y: Number("{{uid.style_delicious}}")* 100,
+            drilldown: "delicious"
+          },
+          {
+            name: "books",
+            y: Number("{{uid.style_books}}")* 100,
+            drilldown: "books"
+          },
+        ]
+      }
+    ],
+    drilldown: {
+      series: [
+        {
+          name: "Chrome",
+          id: "Chrome",
+          data: [
+            [
+              "v65.0",
+              0.1
+            ],
+            [
+              "v64.0",
+              1.3
+            ],
+            [
+              "v63.0",
+              53.02
+            ],
+            [
+              "v62.0",
+              1.4
+            ],
+            [
+              "v61.0",
+              0.88
+            ],
+            [
+              "v60.0",
+              0.56
+            ],
+            [
+              "v59.0",
+              0.45
+            ],
+            [
+              "v58.0",
+              0.49
+            ],
+            [
+              "v57.0",
+              0.32
+            ],
+            [
+              "v56.0",
+              0.29
+            ],
+            [
+              "v55.0",
+              0.79
+            ],
+            [
+              "v54.0",
+              0.18
+            ],
+            [
+              "v51.0",
+              0.13
+            ],
+            [
+              "v49.0",
+              2.16
+            ],
+            [
+              "v48.0",
+              0.13
+            ],
+            [
+              "v47.0",
+              0.11
+            ],
+            [
+              "v43.0",
+              0.17
+            ],
+            [
+              "v29.0",
+              0.26
+            ]
+          ]
+        },
+      ]
+    }
+  });
+}
+function create_chart_questionarie(){
+  Highcharts.chart('container_2', {
+    chart: {
+        type: 'column'
+    },
+    title: {
+        text: ''
+    },
+    xAxis: {
+        categories: ['openness','Conscientiousness','Extraversion','Agreeableness','Neuroticism']
+    },
+    credits: {
+        enabled: false
+    },
+    series: [{
+        name: '人格問卷結果',
+        data: [Number("{{o}}"), Number("{{c}}"), Number("{{e}}"), Number("{{a}}"), Number("{{n}}")]
+    }]
+});
+}
+</script>
+{% endblock %}
